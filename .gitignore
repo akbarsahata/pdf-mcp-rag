@@ -1,0 +1,52 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# Data & Indexes (heavy, regenerable files)
+chroma/
+tantivy_index/
+data/mineru_out/
+
+# Local PDFs (if storing raw PDFs)
+data/pdfs/*.pdf
+
+# Environment-specific
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
