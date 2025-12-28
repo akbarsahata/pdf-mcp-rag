@@ -2,6 +2,8 @@ import re
 import json
 import uuid
 import subprocess
+import argparse
+import shutil
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 
@@ -108,11 +110,8 @@ def _extract_text_from_block(obj: Any) -> str:
     if not isinstance(obj, dict):
         return ""
 
-    for k in ("text", "content", "md", "markdown", "paragraph"):
-        v = obj.get(k)
-        if isinstance(v, str) and v.strip():
-            return clean_text(v)
-
+    # Prefer structured line lists when available; MinerU often stores richer
+    # paragraph content in `lines` while `text` can be line-fragmentary.
     if isinstance(obj.get("lines"), list):
         lines = []
         for ln in obj["lines"]:
@@ -123,6 +122,11 @@ def _extract_text_from_block(obj: Any) -> str:
         joined = clean_text("\n".join(lines))
         if joined:
             return joined
+
+    for k in ("text", "content", "md", "markdown", "paragraph"):
+        v = obj.get(k)
+        if isinstance(v, str) and v.strip():
+            return clean_text(v)
 
     return ""
 
@@ -157,7 +161,7 @@ def _iter_json_blocks(obj: Any, page: int = 0, section: str = ""):
 
         # Defensive recursion into other nested structures
         for k, v in obj.items():
-            if k in {"pages", "blocks", "elements", "content", "children", "items", "paragraphs"}:
+            if k in {"pages", "blocks", "elements", "content", "children", "items", "paragraphs", "lines"}:
                 continue
             if isinstance(v, (dict, list)):
                 yield from _iter_json_blocks(v, page=page, section=section)
@@ -219,7 +223,36 @@ def build_tantivy() -> Tuple[tantivy.Index, tantivy.IndexWriter]:
     return index, writer
 
 
-def main() -> None:
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Ingest PDFs via MinerU into Chroma + Tantivy.")
+    p.add_argument(
+        "--reset",
+        action="store_true",
+        help="Delete and rebuild local indexes (chroma/ and tantivy_index/). Requires --yes.",
+    )
+    p.add_argument(
+        "--yes",
+        action="store_true",
+        help="Confirm destructive operations when used with --reset.",
+    )
+    return p.parse_args()
+
+
+def _reset_indexes(yes: bool) -> None:
+    if not yes:
+        raise SystemExit(
+            "Refusing to reset without confirmation. Re-run with: python ingest_mineru.py --reset --yes"
+        )
+
+    for d in (CHROMA_DIR, TANTIVY_DIR):
+        if d.exists():
+            shutil.rmtree(d)
+
+
+def main(reset: bool = False, yes: bool = False) -> None:
+    if reset:
+        _reset_indexes(yes=yes)
+
     PDF_DIR.mkdir(parents=True, exist_ok=True)
     MINERU_OUT.mkdir(parents=True, exist_ok=True)
     CHROMA_DIR.mkdir(parents=True, exist_ok=True)
@@ -263,8 +296,59 @@ def main() -> None:
         json_blocks = load_extracted_json_blocks(pdf_out) if has_json else []
 
         if json_blocks:
+            # MinerU JSON can be very granular (often line fragments). Merge consecutive
+            # fragments per (page, section) so we index paragraph-like blocks.
+            merged_blocks: List[Dict[str, Any]] = []
+            merge_target_chars = 4000
+
+            cur_page = None
+            cur_section = None
+            cur_parts: List[str] = []
+            cur_len = 0
+
+            def _flush_current() -> None:
+                nonlocal cur_page, cur_section, cur_parts, cur_len
+                if cur_parts:
+                    merged_blocks.append(
+                        {
+                            "text": clean_text("\n".join(cur_parts)),
+                            "page": int(cur_page or 0),
+                            "section": str(cur_section or ""),
+                        }
+                    )
+                cur_page = None
+                cur_section = None
+                cur_parts = []
+                cur_len = 0
+
             chunk_count = 0
             for block in json_blocks:
+                text = block.get("text", "")
+                if not text.strip():
+                    continue
+
+                page_val = int(block.get("page", 0) or 0)
+                section_val = str(block.get("section", "") or "")
+                text_clean = clean_text(text)
+                if not text_clean:
+                    continue
+
+                if cur_page is None:
+                    cur_page = page_val
+                    cur_section = section_val
+
+                # Start a new merged block if (page, section) changes or we hit target size.
+                if (page_val != cur_page) or (section_val != cur_section) or (cur_len >= merge_target_chars):
+                    _flush_current()
+                    cur_page = page_val
+                    cur_section = section_val
+
+                cur_parts.append(text_clean)
+                cur_len += len(text_clean)
+
+            _flush_current()
+
+            for block in merged_blocks:
                 text = block.get("text", "")
                 if not text.strip():
                     continue
@@ -348,4 +432,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    args = _parse_args()
+    main(reset=args.reset, yes=args.yes)

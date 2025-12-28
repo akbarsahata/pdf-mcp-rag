@@ -7,8 +7,10 @@ from sentence_transformers import SentenceTransformer
 
 from mcp.server.fastmcp import FastMCP
 
-CHROMA_DIR = Path("chroma")
-TANTIVY_DIR = Path("tantivy_index")
+BASE_DIR = Path(__file__).resolve().parent
+
+CHROMA_DIR = BASE_DIR / "chroma"
+TANTIVY_DIR = BASE_DIR / "tantivy_index"
 COLLECTION_NAME = "pdf_chunks"
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -16,14 +18,17 @@ K0 = 60.0  # RRF constant
 
 mcp = FastMCP("PDF Hybrid Search (MinerU + Chroma + BM25)")
 
-# Vector index
-chroma = chromadb.PersistentClient(path=str(CHROMA_DIR))
-collection = chroma.get_or_create_collection(name=COLLECTION_NAME)
 embedder = SentenceTransformer(EMBED_MODEL)
 
-# BM25 index
-bm25_index = tantivy.Index.open(str(TANTIVY_DIR))
-bm25_searcher = bm25_index.searcher()
+
+def _open_collection():
+    chroma = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    return chroma.get_or_create_collection(name=COLLECTION_NAME)
+
+
+def _open_bm25():
+    index = tantivy.Index.open(str(TANTIVY_DIR))
+    return index, index.searcher()
 
 
 def rrf_fuse(vec_ids: List[str], bm25_ids: List[str]) -> Dict[str, float]:
@@ -37,6 +42,9 @@ def rrf_fuse(vec_ids: List[str], bm25_ids: List[str]) -> Dict[str, float]:
 
 @mcp.tool()
 def search(query: str, top_k: int = 8, vec_k: int = 12, bm25_k: int = 12) -> Dict[str, Any]:
+    collection = _open_collection()
+    bm25_index, bm25_searcher = _open_bm25()
+
     # Vector
     q_emb = embedder.encode([query]).tolist()[0]
     vres = collection.query(
@@ -75,6 +83,7 @@ def search(query: str, top_k: int = 8, vec_k: int = 12, bm25_k: int = 12) -> Dic
 
 @mcp.tool()
 def fetch(ids: List[str]) -> Dict[str, Any]:
+    collection = _open_collection()
     got = collection.get(ids=ids, include=["documents", "metadatas"])
     return {
         "documents": [

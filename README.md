@@ -118,6 +118,12 @@ Extract PDFs using MinerU and build dual indexes (ChromaDB + Tantivy):
 python ingest_mineru.py
 ```
 
+If you changed the ingestion/chunking logic and want a clean rebuild (recommended to avoid mixing old and new chunks):
+
+```bash
+python ingest_mineru.py --reset --yes
+```
+
 **Output:**
 - `data/mineru_out/` – MinerU extraction results (markdown + JSON)
 - `chroma/` – Vector database with embeddings
