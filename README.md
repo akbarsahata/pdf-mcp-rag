@@ -4,56 +4,72 @@ A **Model Context Protocol (MCP) server** that enables Claude and other AI syste
 
 ## Overview
 
-This project provides a production-ready system for intelligent PDF document retrieval combining:
+PDF-MCP-RAG is a production-ready **hybrid PDF retrieval system** designed for semantic + lexical search. It combines:
 
 - **MinerU**: Advanced PDF extraction with layout awareness (markdown + structured JSON)
-- **ChromaDB**: Vector database for semantic (dense) search
-- **Sentence Transformers**: Embedding model for semantic understanding
-- **Tantivy**: BM25 full-text search engine
-- **MCP Framework**: Seamless integration with Claude, VS Code, and compatible tools
+- **ChromaDB**: Vector database for semantic (dense) search via Sentence Transformers
+- **Tantivy**: BM25 full-text search engine for exact keyword matching
+- **Reciprocal Rank Fusion (RRF)**: Intelligent fusion of vector and lexical results
+- **MCP Framework**: Expose search as tools for Claude, VS Code, and compatible applications
 
-The system implements **Reciprocal Rank Fusion (RRF)** to blend vector and BM25 results, providing more robust retrieval than either method alone.
+Hybrid search outperforms either method alone: semantic search captures meaning and paraphrases, while BM25 captures exact domain terms. RRF combines them without requiring score calibration.
 
 ## Features
 
-✅ **Automated PDF Processing**: Use MinerU to extract structured text and metadata from PDFs  
-✅ **Dual-Index Search**: Semantic + lexical ranking with RRF fusion  
-✅ **MCP Integration**: Expose search as tools for Claude Desktop, VS Code, and other MCP clients  
-✅ **Chunking & Caching**: Smart text chunking with configurable overlap; caches extracted content  
-✅ **JSON & Markdown Support**: Prefers MinerU's structured JSON output, falls back to markdown  
-✅ **Batch Indexing**: Handles large document collections with ChromaDB batch size management
+✅ **Hybrid Search**: Combine semantic (vector) and lexical (BM25) retrieval via Reciprocal Rank Fusion  
+✅ **Advanced PDF Extraction**: MinerU with layout awareness; supports both markdown and structured JSON output  
+✅ **MCP Integration**: Expose search tools to Claude Desktop, VS Code, and MCP-compatible applications  
+✅ **Smart Chunking**: Configurable text chunking with overlap; automatic caching of extracted content  
+✅ **Batch Scaling**: Efficiently handle large document collections with ChromaDB batch processing  
+✅ **Dual Indexing**: ChromaDB for semantic search + Tantivy BM25 for full-text search
 
-## Example of Use Case
+## Use Case Example: Educational Research Retrieval
 
-I used this system to build a document retrieval tool for educational research papers on misconception detection in AI-driven learning systems. The dual-index search allowed me to find relevant papers even when terminology varied across disciplines. Below are some of the key papers I explored:
+This system powers intelligent literature search for educational AI research. A typical workflow:
 
-- [Demirezen et al. (2023) – Physics misconceptions via Transformers](https://link.springer.com/10.1007/s00521-023-08414-2)
-- [Otero et al. (2025) – Algebra misconception benchmarks with LLMs](https://link.springer.com/10.1007/s44217-025-00742-w)
-- [Kökver et al. (2024) – NLP-based environmental science misconceptions](https://link.springer.com/10.1007/s10639-024-12919-1)
-- [Fischer et al. (2023) – Programming education feedback systems](https://dl.acm.org/doi/10.1145/3629296.3629297)
+1. **Ingest**: Extract 20+ papers on misconception detection, learning analytics, and grading systems
+2. **Search**: Query "LLM reliability in student assessment" → hybrid search finds papers using varied terminology
+3. **Fetch**: Retrieve full passages for synthesis into research summaries
+4. **Integrate**: Connect MCP server to VS Code; use Claude to generate literature reviews on-demand
 
-I connect the MCP server to VS Code using the MCP extension, allowing me to query the document collection directly from my editor while writing research summaries. As for AI models, I primarily use GPT-5.2.
+**Key papers indexed:**
+- Otero et al. (2025) – Algebra misconception benchmarks
+- Smart et al. (2024) – LLM error pattern alignment with students
+- Qiu et al. (2024) – RAG-based grading systems
+- Grévisse (2024) – LLM consistency in educational assessment
 
-The [`from-markdown.md`](from-markdown.md) and [`from-json.md`](from-json.md) file contain synthesized literature review based on these papers, formatted in IEEE style. The filenames indicate whether the content was extracted from MinerU's markdown or JSON output.
+The hybrid search excels here because educational papers use inconsistent terminology ("misconception diagnosis" vs. "error detection" vs. "learning gap identification"). Semantic search captures the intent; BM25 ensures no important citations are missed.
 
-See the files for results and comparisons of extraction quality!
+**Extensible to any domain**: Legal document discovery, medical literature synthesis, technical documentation search, knowledge base Q&A.
 
 ## Project Structure
 
 ```
 pdf-mcp-rag/
-├── ingest_mineru.py       # PDF extraction, chunking, and dual-index ingestion
-├── server.py              # MCP server with search() and fetch() tools
-├── test_search.py         # Standalone test script for search functionality
-├── papers.md              # Literature review on misconception detection (IEEE-style)
-├── LICENSE.md             # AGPL-3.0 licensing (due to MinerU)
-├── README.md              # This file
-├── package.json           # Node.js dependencies (for MCP Inspector)
-├── data/
-│   ├── pdfs/              # Place your PDF files here
-│   └── mineru_out/        # MinerU extraction output (cached, gitignored)
-├── chroma/                # ChromaDB vector store (gitignored)
-└── tantivy_index/         # Tantivy BM25 index (gitignored)
+├── Core RAG System
+│   ├── ingest_mineru.py       # PDF extraction, chunking, dual-index ingestion
+│   ├── server.py              # MCP server with search() and fetch() tools
+│   └── test_search.py         # Standalone test script for retrieval
+├── Data & Indexes
+│   ├── data/pdfs/             # Input: Place PDF files here
+│   ├── data/mineru_out/       # MinerU extraction output (cached)
+│   ├── chroma/                # ChromaDB vector embeddings (gitignored)
+│   └── tantivy_index/         # Tantivy BM25 index (gitignored)
+├── Example Application (Byproduct)
+│   ├── paper.tex              # IEEE-style paper on misconception diagnosis
+│   ├── paper-with-results-discussion.tex
+│   ├── references.bib         # Bibliography
+│   ├── eval_map_system.py     # Evaluation harness for misconception diagnosis
+│   └── map-data.csv           # MAP benchmark dataset
+├── Documentation
+│   ├── from-markdown.md       # Literature synthesis from MinerU markdown
+│   ├── from-json.md           # Literature synthesis from MinerU JSON
+│   ├── judgements.md          # Annotation notes
+│   └── README.md              # This file
+└── Config & Dependencies
+    ├── requirements.txt       # Python dependencies
+    ├── package.json           # Node.js deps (MCP Inspector)
+    └── LICENSE.md             # AGPL-3.0 (due to MinerU)
 ```
 
 ## Installation
