@@ -55,12 +55,12 @@ pdf-mcp-rag/
 │   ├── data/mineru_out/       # MinerU extraction output (cached)
 │   ├── chroma/                # ChromaDB vector embeddings (gitignored)
 │   └── tantivy_index/         # Tantivy BM25 index (gitignored)
-├── Example Application (Byproduct)
-│   ├── paper.tex              # IEEE-style paper on misconception diagnosis
-│   ├── paper-with-results-discussion.tex
-│   ├── references.bib         # Bibliography
-│   ├── eval_map_system.py     # Evaluation harness for misconception diagnosis
-│   └── map-data.csv           # MAP benchmark dataset
+├── Example Application (Byproduct, local/optional)
+│   ├── paper.tex                          # Gitignored; keep locally if you write a paper
+│   ├── paper-with-results-discussion.tex  # Gitignored; local draft variant
+│   ├── references.bib                     # Gitignored; paste BibTeX from Zotero locally
+│   ├── eval_map_system.py                 # Evaluation harness for misconception diagnosis
+│   └── map-data.csv                       # MAP benchmark dataset
 ├── Documentation
 │   ├── from-markdown.md       # Literature synthesis from MinerU markdown
 │   ├── from-json.md           # Literature synthesis from MinerU JSON
@@ -71,6 +71,8 @@ pdf-mcp-rag/
     ├── package.json           # Node.js deps (MCP Inspector)
     └── LICENSE.md             # AGPL-3.0 (due to MinerU)
 ```
+
+**Note:** LaTeX and BibTeX files (*.tex, *.bib) are gitignored to keep the repo lean. Keep your paper drafts and Zotero-exported BibTeX locally.
 
 ## Installation
 
