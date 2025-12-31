@@ -50,3 +50,6 @@ data/pdfs/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+*.tex
+*.bib
