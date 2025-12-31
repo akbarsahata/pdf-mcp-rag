@@ -33,14 +33,15 @@ This system powers intelligent literature search for educational AI research. A 
 4. **Integrate**: Connect MCP server to VS Code; use Claude to generate literature reviews on-demand
 
 **Key papers indexed:**
-- Otero et al. (2025) – Algebra misconception benchmarks
-- Smart et al. (2024) – LLM error pattern alignment with students
-- Qiu et al. (2024) – RAG-based grading systems
-- Grévisse (2024) – LLM consistency in educational assessment
+- Otero et al. (2025) – Algebra misconception benchmarks [source](https://link.springer.com/10.1007/s44217-025-00742-w)
+- Smart et al. (2024) – LLM error pattern alignment with students [source](https://link.springer.com/10.1007/978-3-031-60609-0_21)
+- Qiu et al. (2024) – RAG-based grading systems [source](https://ieeexplore.ieee.org/document/10825385/)
+- Grévisse (2024) – LLM consistency in educational assessment [source](https://bmcmededuc.biomedcentral.com/articles/10.1186/s12909-024-06026-5)
+- and 15+ more...
 
 The hybrid search excels here because educational papers use inconsistent terminology ("misconception diagnosis" vs. "error detection" vs. "learning gap identification"). Semantic search captures the intent; BM25 ensures no important citations are missed.
 
-**Extensible to any domain**: Legal document discovery, medical literature synthesis, technical documentation search, knowledge base Q&A.
+**Extensible to any domain**: Legal document discovery, medical literature synthesis, technical documentation search, knowledge base Q&A. See `from-markdown.md` and `from-json.md` for more examples.
 
 ## Project Structure
 
