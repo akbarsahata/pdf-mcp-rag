@@ -55,13 +55,7 @@ pdf-mcp-rag/
 │   ├── data/mineru_out/       # MinerU extraction output (cached)
 │   ├── chroma/                # ChromaDB vector embeddings (gitignored)
 │   └── tantivy_index/         # Tantivy BM25 index (gitignored)
-├── Example Application (Byproduct, local/optional)
-│   ├── paper.tex                          # Gitignored; keep locally if you write a paper
-│   ├── paper-with-results-discussion.tex  # Gitignored; local draft variant
-│   ├── references.bib                     # Gitignored; paste BibTeX from Zotero locally
-│   ├── eval_map_system.py                 # Evaluation harness for misconception diagnosis
-│   └── map-data.csv                       # MAP benchmark dataset
-├── Documentation
+├── Examples & Documentation
 │   ├── from-markdown.md       # Literature synthesis from MinerU markdown
 │   ├── from-json.md           # Literature synthesis from MinerU JSON
 │   ├── judgements.md          # Annotation notes
