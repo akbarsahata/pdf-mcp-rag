@@ -51,5 +51,21 @@ data/pdfs/*.pdf
 .DS_Store
 Thumbs.db
 
+
+# LaTeX build artifacts (keep sources tracked)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+*.nav
+*.snm
+*.run.xml
 *.tex
 *.bib
+
+# Generated PDF output (built artifact)
+papers/**/paper.pdf

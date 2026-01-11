@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "paper": "latexmk -cd -pdf -interaction=nonstopmode papers/bounded-diagnosis/paper.tex",
+    "paper:watch": "latexmk -cd -pdf -pvc -interaction=nonstopmode papers/bounded-diagnosis/paper.tex",
+    "paper:clean": "latexmk -cd -C papers/bounded-diagnosis/paper.tex"
   },
   "keywords": [],
   "author": "",
